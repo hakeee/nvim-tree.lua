@@ -36,7 +36,8 @@ M.Tree = {
     'nofoldenable',
     'nospell',
     'foldmethod=manual',
-    'foldcolumn=0'
+    'foldcolumn=0',
+    'cursorline',
   }
 }
 
