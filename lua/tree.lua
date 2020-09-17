@@ -70,6 +70,9 @@ local keypress_funcs = {
     if node.entries ~= nil or node.name == '..' then return end
     return lib.open_file('preview', node.absolute_path)
   end,
+  collapse_dir = lib.collapse_dir,
+  expand_dir = lib.expand_dir,
+  expand_or_open = lib.expand_or_open,
 }
 
 function M.on_keypress(mode)

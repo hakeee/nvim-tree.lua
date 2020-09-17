@@ -88,6 +88,30 @@ function M.get_node_at_cursor()
   return get_node_at_line(line)(M.Tree.entries)
 end
 
+function M.expand_dir(node)
+  if node.entries ~= nil then
+    node.open = true
+    if #node.entries <= 0 then
+      populate(node.entries, node.absolute_path)
+    end
+    renderer.draw(M.Tree, true)
+  end
+end
+
+function M.collapse_dir(node)
+  if node.entries ~= nil then
+    node.open = false
+    renderer.draw(M.Tree, true)
+  end
+end
+
+function M.expand_or_open(node)
+  if node.entries ~= nil then
+    return M.expand_dir(node)
+  end
+  return M.open_file('edit', node.absolute_path)
+end
+
 function M.unroll_dir(node)
   node.open = not node.open
   if #node.entries > 0 then
@@ -242,6 +266,9 @@ local function set_mappings()
     [bindings.paste] = 'on_keypress("paste")';
     [bindings.prev_git_item] = 'on_keypress("prev_git_item")';
     [bindings.next_git_item] = 'on_keypress("next_git_item")';
+    [bindings.expand_dir] = 'on_keypress("expand_dir")';
+    [bindings.collapse_dir] = 'on_keypress("collapse_dir")';
+    [bindings.expand_or_open] = 'on_keypress("expand_or_open")';
     gx = "xdg_open()";
   }
 

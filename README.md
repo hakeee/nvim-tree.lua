@@ -65,7 +65,10 @@ let g:lua_tree_bindings = {
     \ 'paste':           'p',
     \ 'prev_git_item':   '[c',
     \ 'next_git_item':   ']c',
-    }
+    \ 'expand_dir':      '>',
+    \ 'collapse_dir':    ['<', 'h'],
+    \ 'expand_or_open':  'l',
+    \ }
 
 " Disable default mappings by plugin
 " Bindings are enable by default, disabled on any non-zero value
@@ -114,6 +117,9 @@ highlight LuaTreeFolderIcon guibg=blue
 - type `d` to delete a file (will prompt for confirmation)
 - type `]c` to go to next git item
 - type `[c` to go to prev git item
+- type `>` to expand directory under cursor
+- type `<` or `h` to collapse directory under cursor
+- type `l` to expand directory or open file under cursor
 - if the file is a directory, `<CR>` will open the directory otherwise it will open the file in the buffer near the tree
 - if the file is a symlink, `<CR>` will follow the symlink (if the target is a file)
 - `<C-v>` will open the file in a vertical split

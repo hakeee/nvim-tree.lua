@@ -68,6 +68,9 @@ function M.get_bindings()
     paste           = keybindings.paste or 'p',
     prev_git_item   = keybindings.prev_git_item or '[c',
     next_git_item   = keybindings.next_git_item or ']c',
+    expand_dir      = keybindings.expand_dir or '>',
+    collapse_dir    = keybindings.collapse_dir or {'h', '<'},
+    expand_or_open  = keybindings.expand_or_open or 'l',
   }
 end
 
