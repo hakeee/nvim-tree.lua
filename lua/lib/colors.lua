@@ -38,7 +38,7 @@ local function get_hl_groups()
     ExecFile = { gui = 'bold', fg = colors.green },
     ImageFile = { gui = 'bold', fg = colors.purple },
 
-    GitDirty = { fg = colors.dark_red },
+    GitDirty = { fg = colors.yellow },
     GitDeleted = { fg = colors.dark_red },
     GitStaged = { fg = colors.green },
     GitMerge = { fg = colors.orange },
