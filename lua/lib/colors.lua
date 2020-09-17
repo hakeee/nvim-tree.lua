@@ -36,7 +36,6 @@ local function get_hl_groups()
     RootFolder = { fg = colors.purple },
 
     ExecFile = { gui = 'bold', fg = colors.green },
-    SpecialFile = { gui = 'bold,underline', fg = colors.yellow },
     ImageFile = { gui = 'bold', fg = colors.purple },
 
     GitDirty = { fg = colors.dark_red },

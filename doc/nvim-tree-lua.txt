@@ -261,7 +261,6 @@ LuaTreeFolderName
 LuaTreeRootFolder
 LuaTreeFolderIcon
 LuaTreeExecFile
-LuaTreeSpecialFile
 LuaTreeImageFile
 LuaTreeMarkdownFile
 LuaTreeIndentMarker

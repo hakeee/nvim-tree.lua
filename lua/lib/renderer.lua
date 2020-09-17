@@ -56,13 +56,6 @@ if icon_state.show_file_icon then
   end
 end
 
-local get_special_icon = function() return icon_state.icons.default end
-if icon_state.show_file_icon then
-  get_special_icon = function()
-    return #icon_state.icons.default > 0 and icon_state.icons.default.." " or ""
-  end
-end
-
 local get_git_icons = function() return "" end
 local get_git_hl = function() return end
 
@@ -182,13 +175,6 @@ local picture = {
   gif = true,
 }
 
-local special = {
-  ["Cargo.toml"] = true,
-  Makefile = true,
-  ["README.md"] = true,
-  ["readme.md"] = true,
-}
-
 local root_folder_modifier = vim.g.lua_tree_root_folder_modifier or ':~'
 
 local function update_draw_data(tree, depth, markers)
@@ -233,14 +219,8 @@ local function update_draw_data(tree, depth, markers)
     else
       local icon
       local git_icons
-      if special[node.name] then
-        icon = get_special_icon()
-        git_icons = get_git_icons(node, index, offset, 0)
-        table.insert(hl, {'LuaTreeSpecialFile', index, offset+#git_icons, -1})
-      else
-        icon = get_file_icon(node.name, node.extension, index, offset)
-        git_icons = get_git_icons(node, index, offset, #icon)
-      end
+      icon = get_file_icon(node.name, node.extension, index, offset)
+      git_icons = get_git_icons(node, index, offset, #icon)
       table.insert(lines, padding..icon..git_icons..node.name)
 
       if node.executable then
