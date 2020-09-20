@@ -2,12 +2,17 @@ local luv = vim.loop
 local lib = require'lib.lib'
 local config = require'lib.config'
 local colors = require'lib.colors'
+local extensions = require'lib.extensions'
 local renderer = require'lib.renderer'
 local fs = require'lib.fs'
 local utils = require'lib.utils'
 local api = vim.api
 
 local M = {}
+
+function M.add_extension(extension)
+  extensions.add(extension)
+end
 
 function M.toggle()
   if lib.win_open() then
@@ -45,15 +50,6 @@ function M.tab_change()
   end, 1)
 end
 
-local function gen_go_to(mode)
-  local icon_state = config.get_icon_state()
-  local flags = mode == 'prev_git_item' and 'b' or ''
-  local icons = table.concat(vim.tbl_values(icon_state.icons.git_icons), '\\|')
-  return function()
-    return icon_state.show_git_icon and vim.fn.search(icons, flags)
-  end
-end
-
 local keypress_funcs = {
   create = fs.create,
   remove = fs.remove,
@@ -64,8 +60,6 @@ local keypress_funcs = {
   toggle_ignored = lib.toggle_ignored,
   toggle_dotfiles = lib.toggle_dotfiles,
   refresh = lib.refresh_tree,
-  prev_git_item = gen_go_to('prev_git_item'),
-  next_git_item = gen_go_to('next_git_item'),
   preview = function(node)
     if node.entries ~= nil or node.name == '..' then return end
     return lib.open_file('preview', node.absolute_path)
@@ -81,6 +75,14 @@ function M.on_keypress(mode)
 
   if keypress_funcs[mode] then
     return keypress_funcs[mode](node)
+  end
+
+  for _, v in pairs(extensions.extensions) do
+    if v ~= nil and type(v.keypress_funcs) == "table" then
+      if v.keypress_funcs[mode] then
+        return v.keypress_funcs[mode](node)
+      end
+    end
   end
 
   if node.name == ".." then

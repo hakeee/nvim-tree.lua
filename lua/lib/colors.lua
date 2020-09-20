@@ -1,5 +1,6 @@
 local api = vim.api
 local config = require'lib.config'
+local extensions = require'lib.extensions'
 
 local M = {}
 
@@ -37,13 +38,6 @@ local function get_hl_groups()
 
     ExecFile = { gui = 'bold', fg = colors.green },
     ImageFile = { gui = 'bold', fg = colors.purple },
-
-    GitDirty = { fg = colors.yellow },
-    GitDeleted = { fg = colors.dark_red },
-    GitStaged = { fg = colors.green },
-    GitMerge = { fg = colors.orange },
-    GitRenamed = { fg = colors.purple },
-    GitNew = { fg = colors.yellow }
   }
 end
 
@@ -55,12 +49,6 @@ local function get_links()
     CursorLine = 'CursorLine',
     VertSplit = 'VertSplit',
     CursorColumn = 'CursorColumn',
-    FileDirty = 'LuaTreeGitDirty',
-    FileNew = 'LuaTreeGitNew',
-    FileRenamed = 'LuaTreeGitRenamed',
-    FileMerge = 'LuaTreeGitMerge',
-    FileStaged = 'LuaTreeGitStaged',
-    FileDeleted = 'LuaTreeGitDeleted',
   }
 end
 
@@ -77,6 +65,10 @@ function M.setup()
   local links = get_links()
   for k, d in pairs(links) do
     api.nvim_command('hi def link LuaTree'..k..' '..d)
+  end
+
+  for _, v in pairs(extensions.extensions) do
+    v.setup()
   end
 end
 

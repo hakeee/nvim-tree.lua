@@ -1,9 +1,9 @@
 local api = vim.api
 local luv = vim.loop
 
+local extensions = require'lib.extensions'
 local renderer = require'lib.renderer'
 local config = require'lib.config'
-local git = require'lib.git'
 local pops = require'lib.populate'
 local populate = pops.populate
 local refresh_entries = pops.refresh_entries
@@ -123,15 +123,6 @@ function M.unroll_dir(node)
   end
 end
 
-local function refresh_git(node)
-  git.update_status(node.entries, node.absolute_path or node.cwd)
-  for _, entry in pairs(node.entries) do
-    if entry.entries ~= nil then
-      refresh_git(entry)
-    end
-  end
-end
-
 -- TODO update only entries where directory has changed
 local function refresh_nodes(node)
   refresh_entries(node.entries, node.absolute_path or node.cwd)
@@ -147,9 +138,8 @@ function M.refresh_tree()
   -- if stat.mtime.sec ~= M.Tree.last_modified then
     refresh_nodes(M.Tree)
   -- end
-  if config.get_icon_state().show_git_icon then
-    git.reload_roots()
-    refresh_git(M.Tree)
+  for _, v in pairs(extensions.extensions) do
+    v.refresh(M.Tree)
   end
   if M.win_open() then
     renderer.draw(M.Tree, true)
@@ -247,6 +237,10 @@ local function set_mappings()
   local buf = M.Tree.bufnr
   local bindings = config.get_bindings()
 
+  for _, e in pairs(extensions.extensions) do
+    e.set_mappings(buf)
+  end
+
   local mappings = {
     ['<2-LeftMouse>'] = 'on_keypress("edit")';
     ['<2-RightMouse>'] = 'on_keypress("cd")';
@@ -265,8 +259,6 @@ local function set_mappings()
     [bindings.cut] = 'on_keypress("cut")';
     [bindings.copy] = 'on_keypress("copy")';
     [bindings.paste] = 'on_keypress("paste")';
-    [bindings.prev_git_item] = 'on_keypress("prev_git_item")';
-    [bindings.next_git_item] = 'on_keypress("next_git_item")';
     [bindings.expand_dir] = 'on_keypress("expand_dir")';
     [bindings.collapse_dir] = 'on_keypress("collapse_dir")';
     [bindings.expand_or_open] = 'on_keypress("expand_or_open")';
@@ -310,7 +302,7 @@ function M.close()
   if #api.nvim_list_wins() == 1 then
     return vim.cmd ':q!'
   end
-  
+
   M.Tree.cursor = api.nvim_win_get_cursor(M.Tree.winnr())
   api.nvim_win_close(M.Tree.winnr(), true)
   M.Tree.bufnr = nil
@@ -331,7 +323,7 @@ function M.open()
   api.nvim_buf_set_option(M.Tree.bufnr, 'filetype', M.Tree.buf_name)
   api.nvim_command('setlocal '..window_opts.split_command)
 
-  if M.Tree.cursor ~= nil then 
+  if M.Tree.cursor ~= nil then
     api.nvim_win_set_cursor(M.Tree.winnr(), M.Tree.cursor)
   end
 end

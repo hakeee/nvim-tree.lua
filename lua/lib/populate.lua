@@ -1,6 +1,5 @@
 local config = require'lib.config'
-local git = require'lib.git'
-local icon_config = config.get_icon_state()
+local extensions = require'lib.extensions'
 
 local api = vim.api
 local luv = vim.loop
@@ -199,11 +198,9 @@ function M.populate(entries, cwd)
     table.insert(entries, file)
   end
 
-  if (not icon_config.show_git_icon) and vim.g.lua_tree_git_hl ~= 1 then
-    return
+  for _, v in pairs(extensions.extensions) do
+     v.update_status(entries, cwd)
   end
-
-  git.update_status(entries, cwd)
 end
 
 return M

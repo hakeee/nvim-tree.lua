@@ -1,4 +1,5 @@
 local colors = require'lib.colors'
+local extensions = require'lib.extensions'
 local config = require'lib.config'
 local utils = require'lib.utils'
 
@@ -12,8 +13,8 @@ local namespace_id = api.nvim_create_namespace('LuaTreeHighlights')
 local icon_state = config.get_icon_state()
 
 local get_folder_icon = function() return "" end
-local set_folder_hl = function(line, depth, git_icon_len, _, hl_group)
-  table.insert(hl, {hl_group, line, depth+git_icon_len, -1})
+local set_folder_hl = function(line, depth, icon_len, _, hl_group)
+  table.insert(hl, {hl_group, line, depth+icon_len, -1})
 end
 
 if icon_state.show_folder_icon then
@@ -53,94 +54,6 @@ local get_symlink_icon = function() return icon_state.icons.symlink end
 if icon_state.show_file_icon then
   get_symlink_icon = function()
     return #icon_state.icons.symlink > 0 and icon_state.icons.symlink.." " or ""
-  end
-end
-
-local get_git_icons = function() return "" end
-local get_git_hl = function() return end
-
-if vim.g.lua_tree_git_hl == 1 then
-  local git_hl = {
-    ["M "] = { { hl = "LuaTreeFileStaged" } },
-    [" M"] = { { hl = "LuaTreeFileDirty" } },
-    ["MM"] = {
-      { hl = "LuaTreeFileStaged" },
-      { hl = "LuaTreeFileDirty" }
-    },
-    ["A "] = {
-      { hl = "LuaTreeFileStaged" },
-      { hl = "LuaTreeFileNew" }
-    },
-    ["AM"] = {
-      { hl = "LuaTreeFileStaged" },
-      { hl = "LuaTreeFileNew" },
-      { hl = "LuaTreeFileDirty" }
-    },
-    ["??"] = { { hl = "LuaTreeFileNew" } },
-    ["R "] = { { hl = "LuaTreeFileRenamed" } },
-    ["UU"] = { { hl = "LuaTreeFileMerge" } },
-    [" D"] = { { hl = "LuaTreeFileDeleted" } },
-    dirty = { { hl = "LuaTreeFileDirty" } },
-  }
-  get_git_hl = function(node)
-    local git_status = node.git_status
-    if not git_status then return end
-
-    local icons = git_hl[git_status]
-
-    if icons == nil then
-      utils.echo_warning('Unrecognized git state "'..git_status..'". Please open up an issue on https://github.com/kyazdani42/nvim-tree.lua/issues with this message.')
-      icons = git_hl.dirty
-    end
-
-    -- TODO: how would we determine hl color when multiple git status are active ?
-    return icons[1].hl
-    -- return icons[#icons].hl
-  end
-end
-
-if icon_state.show_git_icon then
-  local git_icon_state = {
-    ["M "] = { { icon = icon_state.icons.git_icons.staged, hl = "LuaTreeGitStaged" } },
-    [" M"] = { { icon = icon_state.icons.git_icons.unstaged, hl = "LuaTreeGitDirty" } },
-    ["MM"] = {
-      { icon = icon_state.icons.git_icons.staged, hl = "LuaTreeGitStaged" },
-      { icon = icon_state.icons.git_icons.unstaged, hl = "LuaTreeGitDirty" }
-    },
-    ["A "] = {
-      { icon = icon_state.icons.git_icons.staged, hl = "LuaTreeGitStaged" },
-      { icon = icon_state.icons.git_icons.untracked, hl = "LuaTreeGitNew" }
-    },
-    ["AM"] = {
-      { icon = icon_state.icons.git_icons.staged, hl = "LuaTreeGitStaged" },
-      { icon = icon_state.icons.git_icons.untracked, hl = "LuaTreeGitNew" },
-      { icon = icon_state.icons.git_icons.unstaged, hl = "LuaTreeGitDirty" }
-    },
-    ["??"] = { { icon = icon_state.icons.git_icons.untracked, hl = "LuaTreeGitNew" } },
-    ["R "] = { { icon = icon_state.icons.git_icons.renamed, hl = "LuaTreeGitRenamed" } },
-    ["UU"] = { { icon = icon_state.icons.git_icons.unmerged, hl = "LuaTreeGitMerge" } },
-    [" D"] = { { icon = icon_state.icons.git_icons.deleted, hl = "LuaTreeGitDeleted" } },
-    dirty = { { icon = icon_state.icons.git_icons.unstaged, hl = "LuaTreeGitDirty" } },
-  }
-
-  get_git_icons = function(node, line, depth, icon_len)
-    local git_status = node.git_status
-    if not git_status then return "" end
-
-    local icon = ""
-    local icons = git_icon_state[git_status]
-    if not icons then
-      if vim.g.lua_tree_git_hl ~= 1 then
-        utils.echo_warning('Unrecognized git state "'..git_status..'". Please open up an issue on https://github.com/kyazdani42/nvim-tree.lua/issues with this message.')
-      end
-      icons = git_icon_state.dirty
-    end
-    for _, v in ipairs(icons) do
-      table.insert(hl, { v.hl, line, depth+icon_len+#icon, depth+icon_len+#icon+#v.icon })
-      icon = icon..v.icon.." "
-    end
-
-    return icon
   end
 end
 
@@ -192,45 +105,56 @@ local function update_draw_data(tree, depth, markers)
       table.insert(hl, { 'LuaTreeIndentMarker', index, 0, offset })
     end
 
-    local git_hl = get_git_hl(node)
+    local ext_hl = nil
+    for _, v in pairs(extensions.extensions) do
+      local e_hl = v.get_hl(node)
+      if e_hl then
+        ext_hl = e_hl
+      end
+    end
 
     if node.entries then
       local icon = get_folder_icon(node.open)
-      local git_icon = get_git_icons(node, index, offset, #icon+1) or ""
+      local ext_icons = ""
+      for _, v in pairs(extensions.extensions) do
+        ext_icons = ext_icons..v.get_icons(hl, node, index, offset, #icon+#ext_icons+1)
+      end
       -- INFO: this is mandatory in order to keep gui attributes (bold/italics)
-      set_folder_hl(index, offset, #icon, #node.name+#git_icon, 'LuaTreeFolderName')
-      if git_hl then
-        set_folder_hl(index, offset, #icon, #node.name+#git_icon, git_hl)
+      set_folder_hl(index, offset, #icon, #node.name+#ext_icons, 'LuaTreeFolderName')
+      if ext_hl then
+        set_folder_hl(index, offset, #icon, #node.name+#ext_icons, ext_hl)
       end
       index = index + 1
       if node.open then
-        table.insert(lines, padding..icon..git_icon..node.name)
+        table.insert(lines, padding..icon..ext_icons..node.name)
         update_draw_data(node, depth + 2, markers)
       else
-        table.insert(lines, padding..icon..git_icon..node.name)
+        table.insert(lines, padding..icon..ext_icons..node.name)
       end
     elseif node.link_to then
       local icon = get_symlink_icon()
-      local link_hl = git_hl or 'LuaTreeSymlink'
+      local link_hl = ext_hl or 'LuaTreeSymlink'
       table.insert(hl, { link_hl, index, offset, -1 })
       table.insert(lines, padding..icon..node.name.." ➛ "..node.link_to)
       index = index + 1
 
     else
       local icon
-      local git_icons
+      local ext_icons = ""
       icon = get_file_icon(node.name, node.extension, index, offset)
-      git_icons = get_git_icons(node, index, offset, #icon)
-      table.insert(lines, padding..icon..git_icons..node.name)
+      for _, v in pairs(extensions.extensions) do
+        ext_icons = ext_icons..v.get_icons(hl, node, index, offset, #icon+#ext_icons)
+      end
+      table.insert(lines, padding..icon..ext_icons..node.name)
 
       if node.executable then
-        table.insert(hl, {'LuaTreeExecFile', index, offset+#icon+#git_icons, -1 })
+        table.insert(hl, {'LuaTreeExecFile', index, offset+#icon+#ext_icons, -1 })
       elseif picture[node.extension] then
-        table.insert(hl, {'LuaTreeImageFile', index, offset+#icon+#git_icons, -1 })
+        table.insert(hl, {'LuaTreeImageFile', index, offset+#icon+#ext_icons, -1 })
       end
 
-      if git_hl then
-        table.insert(hl, {git_hl, index, offset+#icon+#git_icons, -1 })
+      if ext_hl then
+        table.insert(hl, {ext_hl, index, offset+#icon+#ext_icons, -1 })
       end
       index = index + 1
     end

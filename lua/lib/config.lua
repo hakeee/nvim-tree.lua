@@ -1,18 +1,10 @@
 local M = {}
 
 function M.get_icon_state()
-  local show_icons = vim.g.lua_tree_show_icons or { git = 1, folders = 1, files = 1 }
+  local show_icons = vim.g.lua_tree_show_icons or { folders = 1, files = 1 }
   local icons = {
     default = "",
     symlink = "",
-    git_icons = {
-      unstaged = "✗",
-      staged = "✓",
-      unmerged = "",
-      renamed = "➜",
-      untracked = "★",
-      deleted = ""
-    },
     folder_icons = {
       default = "",
       open = ""
@@ -28,11 +20,6 @@ function M.get_icon_state()
     if user_icons.symlink then
       icons.symlink = user_icons.symlink
     end
-    for key, val in pairs(user_icons.git or {}) do
-      if icons.git_icons[key] then
-        icons.git_icons[key] = val
-      end
-    end
     for key, val in pairs(user_icons.folder or {}) do
       if icons.folder_icons[key] then
         icons.folder_icons[key] = val
@@ -43,7 +30,6 @@ function M.get_icon_state()
   return {
     show_file_icon = show_icons.files == 1 and vim.g.nvim_web_devicons == 1,
     show_folder_icon = show_icons.folders == 1,
-    show_git_icon = show_icons.git == 1,
     icons = icons
   }
 end
@@ -66,8 +52,6 @@ function M.get_bindings()
     cut             = keybindings.cut or 'x',
     copy            = keybindings.copy or 'c',
     paste           = keybindings.paste or 'p',
-    prev_git_item   = keybindings.prev_git_item or '[c',
-    next_git_item   = keybindings.next_git_item or ']c',
     expand_dir      = keybindings.expand_dir or '>',
     collapse_dir    = keybindings.collapse_dir or {'h', '<'},
     expand_or_open  = keybindings.expand_or_open or 'l',
