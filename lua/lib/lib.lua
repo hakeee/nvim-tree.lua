@@ -15,6 +15,7 @@ local M = {}
 M.Tree = {
   entries = {},
   buf_name = 'LuaTree',
+  current = nil,
   cwd = nil,
   win_width =  vim.g.lua_tree_width or 30,
   loaded = false,
@@ -309,6 +310,8 @@ function M.close()
   if #api.nvim_list_wins() == 1 then
     return vim.cmd ':q!'
   end
+  
+  M.Tree.cursor = api.nvim_win_get_cursor(M.Tree.winnr())
   api.nvim_win_close(M.Tree.winnr(), true)
   M.Tree.bufnr = nil
 end
@@ -327,6 +330,10 @@ function M.open()
 
   api.nvim_buf_set_option(M.Tree.bufnr, 'filetype', M.Tree.buf_name)
   api.nvim_command('setlocal '..window_opts.split_command)
+
+  if M.Tree.cursor ~= nil then 
+    api.nvim_win_set_cursor(M.Tree.winnr(), M.Tree.cursor)
+  end
 end
 
 function M.win_open()
