@@ -14,7 +14,7 @@ local function get_color_from_hl(hl_name, fallback)
   return hl.foreground
 end
 
-local function get_colors()
+function M.get_colors()
   return {
     red      = vim.g.terminal_color_1  or get_color_from_hl('Keyword', 'Red'),
     green    = vim.g.terminal_color_2  or get_color_from_hl('Character', 'Green'),
@@ -28,7 +28,7 @@ local function get_colors()
 end
 
 local function get_hl_groups()
-  local colors = get_colors()
+  local colors = M.get_colors()
 
   return {
     IndentMarker = { fg = '#8094b4' },
@@ -67,9 +67,7 @@ function M.setup()
     api.nvim_command('hi def link LuaTree'..k..' '..d)
   end
 
-  for _, v in pairs(extensions.extensions) do
-    v.setup()
-  end
+  extensions.init_colors()
 end
 
 return M

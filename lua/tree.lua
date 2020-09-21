@@ -77,14 +77,6 @@ function M.on_keypress(mode)
     return keypress_funcs[mode](node)
   end
 
-  for _, v in pairs(extensions.extensions) do
-    if v ~= nil and type(v.keypress_funcs) == "table" then
-      if v.keypress_funcs[mode] then
-        return v.keypress_funcs[mode](node)
-      end
-    end
-  end
-
   if node.name == ".." then
     return lib.change_dir("..")
   elseif mode == "cd" and node.entries ~= nil then

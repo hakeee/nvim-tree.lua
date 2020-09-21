@@ -138,9 +138,8 @@ function M.refresh_tree()
   -- if stat.mtime.sec ~= M.Tree.last_modified then
     refresh_nodes(M.Tree)
   -- end
-  for _, v in pairs(extensions.extensions) do
-    v.refresh(M.Tree)
-  end
+  extensions.refresh(M.Tree)
+
   if M.win_open() then
     renderer.draw(M.Tree, true)
   else
@@ -237,9 +236,7 @@ local function set_mappings()
   local buf = M.Tree.bufnr
   local bindings = config.get_bindings()
 
-  for _, e in pairs(extensions.extensions) do
-    e.set_mappings(buf)
-  end
+  extensions.set_mappings(buf)
 
   local mappings = {
     ['<2-LeftMouse>'] = 'on_keypress("edit")';

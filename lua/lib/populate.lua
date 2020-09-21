@@ -198,9 +198,7 @@ function M.populate(entries, cwd)
     table.insert(entries, file)
   end
 
-  for _, v in pairs(extensions.extensions) do
-     v.update_status(entries, cwd)
-  end
+  extensions.update_status(entries, cwd)
 end
 
 return M

@@ -105,20 +105,11 @@ local function update_draw_data(tree, depth, markers)
       table.insert(hl, { 'LuaTreeIndentMarker', index, 0, offset })
     end
 
-    local ext_hl = nil
-    for _, v in pairs(extensions.extensions) do
-      local e_hl = v.get_hl(node)
-      if e_hl then
-        ext_hl = e_hl
-      end
-    end
+    local ext_hl = extensions.get_hl(node)
 
     if node.entries then
       local icon = get_folder_icon(node.open)
-      local ext_icons = ""
-      for _, v in pairs(extensions.extensions) do
-        ext_icons = ext_icons..v.get_icons(hl, node, index, offset, #icon+#ext_icons+1)
-      end
+      local ext_icons = extensions.get_icons(hl, node, index, offset, #icon+1)
       -- INFO: this is mandatory in order to keep gui attributes (bold/italics)
       set_folder_hl(index, offset, #icon, #node.name+#ext_icons, 'LuaTreeFolderName')
       if ext_hl then
@@ -139,12 +130,8 @@ local function update_draw_data(tree, depth, markers)
       index = index + 1
 
     else
-      local icon
-      local ext_icons = ""
-      icon = get_file_icon(node.name, node.extension, index, offset)
-      for _, v in pairs(extensions.extensions) do
-        ext_icons = ext_icons..v.get_icons(hl, node, index, offset, #icon+#ext_icons)
-      end
+      local icon = get_file_icon(node.name, node.extension, index, offset)
+      local ext_icons = extensions.get_icons(hl, node, index, offset, #icon)
       table.insert(lines, padding..icon..ext_icons..node.name)
 
       if node.executable then
